@@ -2,12 +2,13 @@ import type { HttpContext } from '@adonisjs/core/http'
 import Room from '#models/room'
 import RoomReservation from '#models/room_reservation'
 import vine from '@vinejs/vine'
+import { DateTime } from 'luxon'
 
-const reserveSchema = vine.object({
+const reserveSchema = vine.compile(vine.object({
   roomId: vine.number(),
   date: vine.string(),
   reservedUntil: vine.string().regex(/^\d{2}:\d{2}$/).optional(),
-})
+}))
 
 export default class MentorRoomReservationsController {
   /** GET /api/mentor/rooms - Lista salas cadastradas para o mentor escolher */
@@ -54,7 +55,7 @@ export default class MentorRoomReservationsController {
     const reservation = await RoomReservation.create({
       roomId: room.id,
       mentorId: user.id,
-      date: dateStr,
+      date: DateTime.fromISO(dateStr),
       reservedUntil: data.reservedUntil ?? null,
     })
     await reservation.load('room')

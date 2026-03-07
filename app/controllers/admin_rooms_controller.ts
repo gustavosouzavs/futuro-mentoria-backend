@@ -2,17 +2,17 @@ import type { HttpContext } from '@adonisjs/core/http'
 import Room from '#models/room'
 import vine from '@vinejs/vine'
 
-const createRoomSchema = vine.object({
+const createRoomSchema = vine.compile(vine.object({
   name: vine.string().trim().minLength(1).maxLength(120),
   code: vine.string().trim().maxLength(30).optional(),
   location: vine.string().trim().maxLength(255).optional(),
-})
+}))
 
-const updateRoomSchema = vine.object({
+const updateRoomSchema = vine.compile(vine.object({
   name: vine.string().trim().minLength(1).maxLength(120).optional(),
   code: vine.string().trim().maxLength(30).optional(),
   location: vine.string().trim().maxLength(255).optional(),
-})
+}))
 
 export default class AdminRoomsController {
   async index({ response, auth }: HttpContext) {

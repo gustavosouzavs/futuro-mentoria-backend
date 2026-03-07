@@ -4,11 +4,11 @@ import AppointmentMaterial from '#models/appointment_material'
 import vine from '@vinejs/vine'
 import { DateTime } from 'luxon'
 
-const createMaterialSchema = vine.object({
+const createMaterialSchema = vine.compile(vine.object({
   name: vine.string().trim().minLength(1),
   url: vine.string().trim(),
   type: vine.enum(['pdf', 'doc', 'link', 'other']),
-})
+}))
 
 export default class MentorMaterialsController {
   /**
