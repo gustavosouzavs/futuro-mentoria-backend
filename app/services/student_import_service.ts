@@ -58,7 +58,7 @@ export function parseStudentImportFile(
 
     const firstSheetName = workbook.SheetNames[0]
     const sheet = workbook.Sheets[firstSheetName]
-    const data = XLSX.utils.sheet_to_json<Record<string, unknown>>(sheet, {
+    const data = XLSX.utils.sheet_to_json(sheet, {
       header: 1,
       defval: '',
       blankrows: false,

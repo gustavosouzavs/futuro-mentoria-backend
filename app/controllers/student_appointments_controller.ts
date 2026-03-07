@@ -1,6 +1,5 @@
 import type { HttpContext } from '@adonisjs/core/http'
 import Appointment from '#models/appointment'
-import User from '#models/user'
 import db from '@adonisjs/lucid/services/db'
 
 export default class StudentAppointmentsController {
