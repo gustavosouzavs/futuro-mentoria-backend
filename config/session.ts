@@ -27,7 +27,7 @@ const sessionConfig = defineConfig({
     httpOnly: true,
     secure: app.inProduction,
     sameSite: 'lax',
-    domain: '.futuroeducacional.com'
+    domain: env.get('COOKIE_DOMAIN'),
   },
 
   /**

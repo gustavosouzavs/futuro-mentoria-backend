@@ -2,6 +2,7 @@ import type { HttpContext } from '@adonisjs/core/http'
 import Appointment from '#models/appointment'
 import MentorAvailability from '#models/mentor_availability'
 import User from '#models/user'
+import db from '@adonisjs/lucid/services/db'
 import vine from '@vinejs/vine'
 import { DateTime } from 'luxon'
 
@@ -30,6 +31,24 @@ export default class AppointmentsController {
     const mentor = await User.find(mentorId)
     if (!mentor || mentor.role !== 'mentor') {
       return response.badRequest({ message: 'Mentor não encontrado' })
+    }
+
+    if (data.studentId != null) {
+      const withoutFeedback = await db
+        .from('appointments')
+        .leftJoin('feedbacks', (q) => {
+          q.on('feedbacks.appointment_id', '=', 'appointments.id')
+        })
+        .where('appointments.student_id', data.studentId)
+        .whereNull('feedbacks.id')
+        .count('* as total')
+        .first()
+      const count = Number((withoutFeedback as { total: string })?.total ?? 0)
+      if (count >= 2) {
+        return response.badRequest({
+          message: 'Você só pode agendar até 2 mentorias por vez. Dê feedback das mentorias anteriores para agendar uma nova.',
+        })
+      }
     }
 
     const dateOnly = data.date.slice(0, 10)

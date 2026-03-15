@@ -1,6 +1,19 @@
 import type { HttpContext } from '@adonisjs/core/http'
 import User from '#models/user'
 import db from '@adonisjs/lucid/services/db'
+import hash from '@adonisjs/core/services/hash'
+import vine from '@vinejs/vine'
+
+const updateUserSchema = vine.compile(vine.object({
+  name: vine.string().trim().minLength(1).optional(),
+  email: vine.string().email().optional(),
+  phone: vine.string().trim().optional(),
+  role: vine.enum(['student', 'mentor', 'admin']).optional(),
+  grade: vine.string().trim().optional(),
+  specialties: vine.array(vine.string()).optional(),
+  status: vine.enum(['active', 'inactive']).optional(),
+  password: vine.string().minLength(6).optional(),
+}))
 
 export default class AdminUsersController {
   /**
@@ -117,6 +130,47 @@ export default class AdminUsersController {
       totalMentorias,
       totalAgendamentos,
       averageRating,
+    })
+  }
+
+  /**
+   * PATCH /api/admin/users/:id
+   */
+  async update({ params, request, response, auth }: HttpContext) {
+    await auth.use('web').authenticate()
+    const user = auth.user!
+    if (user.role !== 'admin') {
+      return response.forbidden({ message: 'Acesso negado' })
+    }
+
+    const id = parseInt(params.id, 10)
+    const target = await User.find(id)
+    if (!target) {
+      return response.notFound({ message: 'Usuário não encontrado' })
+    }
+
+    const data = await request.validateUsing(updateUserSchema)
+
+    if (data.email !== undefined && data.email !== target.email) {
+      const existing = await User.findBy('email', data.email)
+      if (existing) {
+        return response.badRequest({ message: 'E-mail já está em uso por outro usuário' })
+      }
+      target.email = data.email
+    }
+    if (data.name !== undefined) target.fullName = data.name
+    if (data.phone !== undefined) target.phone = data.phone || null
+    if (data.role !== undefined) target.role = data.role
+    if (data.grade !== undefined) target.grade = data.grade || null
+    if (data.specialties !== undefined) target.specialties = data.specialties.length ? data.specialties : null
+    if (data.status !== undefined) target.status = data.status
+    if (data.password !== undefined) target.password = await hash.make(data.password)
+
+    await target.save()
+
+    return response.ok({
+      id: String(target.id),
+      message: 'Usuário atualizado com sucesso',
     })
   }
 }

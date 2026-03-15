@@ -65,8 +65,10 @@ router
     // Admin (authenticated)
     router
       .group(() => {
+        router.get('/metrics', '#controllers/admin_metrics_controller.index')
         router.get('/users', '#controllers/admin_users_controller.index')
         router.get('/users/:id', '#controllers/admin_users_controller.show')
+        router.patch('/users/:id', '#controllers/admin_users_controller.update')
         router.post('/schedule-config', '#controllers/admin_schedule_controller.store')
         router.post('/students/import', '#controllers/admin_students_import_controller.store')
         router.get('/rooms', '#controllers/admin_rooms_controller.index')
