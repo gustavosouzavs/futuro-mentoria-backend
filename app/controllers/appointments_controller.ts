@@ -12,9 +12,10 @@ const createAppointmentSchema = vine.compile(vine.object({
   grade: vine.string().trim(),
   mentorId: vine.string(),
   subject: vine.string().trim(),
-  date: vine.string(), // ISO
+  date: vine.string(), // YYYY-MM-DD (ou ISO)
   time: vine.string().regex(/^\d{2}:\d{2}$/),
   message: vine.string().trim().optional(),
+  preparationItems: vine.array(vine.string().trim().minLength(1)).optional(),
   studentId: vine.number(),
 }))
 
@@ -38,6 +39,7 @@ export default class AppointmentsController {
         .from('appointments')
         .leftJoin('feedbacks', (q) => {
           q.on('feedbacks.appointment_id', '=', 'appointments.id')
+            .andOn('feedbacks.user_type', '=', 'student')
         })
         .where('appointments.student_id', data.studentId)
         .whereNull('feedbacks.id')
@@ -75,7 +77,8 @@ export default class AppointmentsController {
       studentEmail: data.studentEmail,
       studentGrade: data.grade,
       message: data.message ?? null,
-      preparationItems: null,
+      preparationItems:
+        data.preparationItems && data.preparationItems.length > 0 ? data.preparationItems : null,
     })
 
     await availability.merge({ status: 'booked' }).save()

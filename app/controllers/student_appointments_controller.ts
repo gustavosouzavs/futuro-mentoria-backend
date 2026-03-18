@@ -1,6 +1,13 @@
 import type { HttpContext } from '@adonisjs/core/http'
 import Appointment from '#models/appointment'
 import db from '@adonisjs/lucid/services/db'
+import vine from '@vinejs/vine'
+
+const updatePreparationItemsSchema = vine.compile(
+  vine.object({
+    preparationItems: vine.array(vine.string().trim().minLength(1)).optional(),
+  }),
+)
 
 export default class StudentAppointmentsController {
   /**
@@ -92,5 +99,33 @@ export default class StudentAppointmentsController {
       materials,
       hasFeedback,
     })
+  }
+
+  /**
+   * PATCH /api/student/appointments/:id/preparation-items
+   */
+  async updatePreparationItems({ params, request, response, auth }: HttpContext) {
+    await auth.use('web').authenticate()
+    const user = auth.user!
+    if (user.role !== 'student') {
+      return response.forbidden({ message: 'Acesso negado' })
+    }
+
+    const id = parseInt(params.id, 10)
+    const appointment = await Appointment.query()
+      .where('id', id)
+      .where('student_id', user.id)
+      .first()
+
+    if (!appointment) {
+      return response.notFound({ message: 'Agendamento não encontrado' })
+    }
+
+    const data = await request.validateUsing(updatePreparationItemsSchema)
+    appointment.preparationItems =
+      data.preparationItems && data.preparationItems.length > 0 ? data.preparationItems : null
+    await appointment.save()
+
+    return response.ok({ message: 'Materiais atualizados com sucesso' })
   }
 }

@@ -36,6 +36,10 @@ router
       .group(() => {
         router.get('/appointments', '#controllers/student_appointments_controller.index')
         router.get('/appointments/:id', '#controllers/student_appointments_controller.show')
+        router.patch(
+          '/appointments/:id/preparation-items',
+          '#controllers/student_appointments_controller.updatePreparationItems'
+        )
       })
       .prefix('student')
       .use(middleware.apiAuth())
