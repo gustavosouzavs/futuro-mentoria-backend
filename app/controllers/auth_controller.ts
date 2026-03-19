@@ -17,6 +17,14 @@ const registerSchema = vine.compile(vine.object({
   specialties: vine.array(vine.string()).optional(),
 }))
 
+const changePasswordSchema = vine.compile(
+  vine.object({
+    currentPassword: vine.string().trim().minLength(1),
+    newPassword: vine.string().minLength(6),
+    confirmPassword: vine.string().minLength(6),
+  })
+)
+
 export default class AuthController {
   async login({ request, response, auth }: HttpContext) {
     const { email, password } = await request.validateUsing(loginSchema)
@@ -85,5 +93,31 @@ export default class AuthController {
         specialties: user.specialties,
       },
     })
+  }
+
+  /**
+   * PATCH /api/auth/change-password
+   * Body: { currentPassword, newPassword, confirmPassword }
+   */
+  async changePassword({ request, response, auth }: HttpContext) {
+    await auth.use('web').authenticate()
+    const user = auth.user!
+
+    const data = await request.validateUsing(changePasswordSchema)
+
+    if (data.newPassword !== data.confirmPassword) {
+      return response.badRequest({ message: 'As senhas não coincidem' })
+    }
+
+    try {
+      await User.verifyCredentials(user.email, data.currentPassword)
+    } catch {
+      return response.badRequest({ message: 'Senha atual incorreta' })
+    }
+
+    user.password = data.newPassword
+    await user.save()
+
+    return response.ok({ message: 'Senha atualizada com sucesso' })
   }
 }

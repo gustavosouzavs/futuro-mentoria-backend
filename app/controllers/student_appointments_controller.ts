@@ -24,18 +24,17 @@ export default class StudentAppointmentsController {
       .where('student_id', user.id)
       .preload('mentor')
       .preload('materials')
-      .preload('feedbacks')
       .orderBy('scheduled_at', 'desc')
 
     const feedbackAppointmentIds = await db
       .from('feedbacks')
       .select('appointment_id')
       .where('user_type', 'student')
-      .then((rows) => rows.map((r: { appointment_id: number }) => r.appointment_id))
+      .then((rows) => rows.map((r: { appointment_id: number }) => Number(r.appointment_id)))
 
     const list = appointments.map((a) => {
       const mentor = a.mentor
-      const hasFeedback = feedbackAppointmentIds.includes(a.id)
+      const hasFeedback = feedbackAppointmentIds.includes(Number(a.id))
       return {
         id: String(a.id),
         mentorName: mentor?.fullName || 'Mentor',

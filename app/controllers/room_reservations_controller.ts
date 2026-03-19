@@ -24,6 +24,7 @@ export default class RoomReservationsController {
       mentorId: r.mentorId,
       mentorName: r.mentor.fullName || `Mentor ${r.mentorId}`,
       date: dateStr,
+      reservedFrom: r.reservedFrom,
       reservedUntil: r.reservedUntil,
     }))
 

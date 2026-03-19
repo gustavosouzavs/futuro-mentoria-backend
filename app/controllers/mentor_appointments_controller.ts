@@ -20,7 +20,11 @@ export default class MentorAppointmentsController {
       .preload('materials')
       .orderBy('scheduled_at', 'desc')
 
-    const feedbackAppointmentIds = await db.from('feedbacks').select('appointment_id').then((rows) => rows.map((r: { appointment_id: number }) => r.appointment_id))
+    const feedbackAppointmentIds = await db
+      .from('feedbacks')
+      .select('appointment_id')
+      .where('user_type', 'mentor')
+      .then((rows) => rows.map((r: { appointment_id: number }) => Number(r.appointment_id)))
 
     const list = appointments.map((a) => {
       const studentName = a.studentName || (a.student ? (a.student as User).fullName : null) || 'Estudante'
@@ -33,7 +37,7 @@ export default class MentorAppointmentsController {
         date: a.scheduledAt.toISO(),
         time: a.timeSlot,
         status: a.status,
-        hasFeedback: feedbackAppointmentIds.includes(a.id),
+        hasFeedback: feedbackAppointmentIds.includes(Number(a.id)),
         hasMaterial: (a.materials?.length ?? 0) > 0,
         hasMessage: !!a.message,
       }
@@ -67,6 +71,13 @@ export default class MentorAppointmentsController {
     const student = appointment.student as User | null
     const studentName = appointment.studentName || student?.fullName || 'Estudante'
     const studentEmail = appointment.studentEmail || student?.email || ''
+    const studentPhone = student?.phone ?? null
+
+    const mentorFeedback = await appointment
+      .related('feedbacks')
+      .query()
+      .where('user_type', 'mentor')
+      .first()
 
     const materials = (appointment.materials || []).map((m) => ({
       id: String(m.id),
@@ -80,6 +91,7 @@ export default class MentorAppointmentsController {
       id: String(appointment.id),
       studentName,
       studentEmail,
+      studentPhone: studentPhone ?? undefined,
       subject: appointment.subject,
       date: appointment.scheduledAt.toISO(),
       time: appointment.timeSlot,
@@ -87,6 +99,7 @@ export default class MentorAppointmentsController {
       message: appointment.message ?? undefined,
       preparationItems: appointment.preparationItems ?? undefined,
       materials,
+      hasFeedback: !!mentorFeedback,
     })
   }
 
@@ -107,10 +120,37 @@ export default class MentorAppointmentsController {
       return response.notFound({ message: 'Agendamento não encontrado' })
     }
 
-    const body = request.body()
-    if (body.message !== undefined) appointment.message = body.message
-    if (body.preparationItems !== undefined) appointment.preparationItems = body.preparationItems
-    if (body.status !== undefined) appointment.status = body.status
+    const body = request.body() as {
+      message?: string | null
+      preparationItems?: string[]
+      status?: string
+    }
+
+    if ('message' in body) {
+      appointment.message =
+        body.message === null || body.message === '' ? null : String(body.message)
+    }
+    if (body.preparationItems !== undefined) {
+      appointment.preparationItems = body.preparationItems
+    }
+    if (body.status !== undefined) {
+      const next = body.status as Appointment['status']
+      const allowed: Appointment['status'][] = ['pending', 'confirmed', 'completed', 'cancelled']
+      if (!allowed.includes(next)) {
+        return response.badRequest({ message: 'Status inválido.' })
+      }
+      if (next === 'confirmed' && appointment.status !== 'pending') {
+        return response.badRequest({ message: 'Só é possível confirmar uma mentoria pendente.' })
+      }
+      if (next === 'completed' && appointment.status !== 'confirmed') {
+        return response.badRequest({ message: 'Só é possível encerrar uma mentoria confirmada.' })
+      }
+      if (next === 'cancelled' && !['pending', 'confirmed'].includes(appointment.status)) {
+        return response.badRequest({ message: 'Não é possível cancelar neste status.' })
+      }
+      appointment.status = next
+    }
+
     await appointment.save()
 
     return response.ok({ message: 'Atualizado com sucesso' })

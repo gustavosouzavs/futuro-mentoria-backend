@@ -18,6 +18,9 @@ export default class RoomReservation extends BaseModel {
   declare date: DateTime
 
   @column()
+  declare reservedFrom: string | null // HH:mm
+
+  @column()
   declare reservedUntil: string | null // HH:mm
 
   @column.dateTime({ autoCreate: true })

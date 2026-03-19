@@ -23,6 +23,7 @@ router
       router.post('/register', '#controllers/auth_controller.register')
       router.post('/logout', '#controllers/auth_controller.logout').use(middleware.apiAuth())
       router.get('/me', '#controllers/auth_controller.me').use(middleware.apiAuth())
+      router.patch('/change-password', '#controllers/auth_controller.changePassword').use(middleware.apiAuth())
 
     }).prefix('auth')
 

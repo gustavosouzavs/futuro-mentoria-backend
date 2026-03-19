@@ -32,7 +32,16 @@ export default class Appointment extends BaseModel {
 
   @column({
     prepare: (value: string[] | null) => (value ? JSON.stringify(value) : null),
-    consume: (value: string | null) => (value ? JSON.parse(value) : null),
+    consume: (value: string | null) => {
+      if (!value || typeof value !== 'string') return null
+      try {
+        const parsed = JSON.parse(value) as unknown
+        if (!Array.isArray(parsed)) return null
+        return parsed.map((item) => String(item))
+      } catch {
+        return null
+      }
+    },
   })
   declare preparationItems: string[] | null
 
