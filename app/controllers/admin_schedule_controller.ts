@@ -29,6 +29,7 @@ export default class AdminScheduleController {
       return response.forbidden({ message: 'Acesso negado' })
     }
 
+
     const existing = await ScheduleConfig.first()
     return response.ok({ days: existing?.days ?? [] })
   }

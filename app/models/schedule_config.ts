@@ -8,7 +8,6 @@ export default class ScheduleConfig extends BaseModel {
 
   @column({
     prepare: (value: object) => JSON.stringify(value),
-    consume: (value: string) => (value ? JSON.parse(value) : []),
   })
   declare days: { day: string; enabled: boolean; timeSlots: { id: string; time: string; enabled: boolean }[] }[]
 
