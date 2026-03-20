@@ -165,7 +165,7 @@ export default class AdminUsersController {
     if (data.specialties !== undefined) target.specialties = data.specialties.length ? data.specialties : null
     if (data.status !== undefined) target.status = data.status
     if (data.password !== undefined) {
-      target.password = await hash.make(data.password)
+      target.password = data.password
     }
 
     await target.save()

@@ -53,7 +53,7 @@ export default class AdminStudentsImportController {
 
     const created: { id: number; name: string; email: string }[] = []
     const skipped: { row: number; reason: string }[] = []
-    const defaultPassword = await hash.make('trocar123')
+    const defaultPassword = 'trocar123'
 
     for (let i = 0; i < rows.length; i++) {
       const { aluno, serie, email: rowEmail } = rows[i]
