@@ -164,7 +164,9 @@ export default class AdminUsersController {
     if (data.grade !== undefined) target.grade = data.grade || null
     if (data.specialties !== undefined) target.specialties = data.specialties.length ? data.specialties : null
     if (data.status !== undefined) target.status = data.status
-    if (data.password !== undefined) target.password = data.password
+    if (data.password !== undefined) {
+      target.password = await hash.make(data.password)
+    }
 
     await target.save()
 

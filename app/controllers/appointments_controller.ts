@@ -1,10 +1,12 @@
 import type { HttpContext } from '@adonisjs/core/http'
 import Appointment from '#models/appointment'
 import MentorAvailability from '#models/mentor_availability'
+import ScheduleConfig from '#models/schedule_config'
 import User from '#models/user'
 import db from '@adonisjs/lucid/services/db'
 import vine from '@vinejs/vine'
 import { DateTime } from 'luxon'
+import { getAllowedTimeSlotsForDate } from '#services/schedule_config_service'
 
 const createAppointmentSchema = vine.compile(vine.object({
   studentName: vine.string().trim().minLength(2),
@@ -54,6 +56,15 @@ export default class AppointmentsController {
     }
 
     const dateOnly = data.date.slice(0, 10)
+
+    const scheduleConfig = await ScheduleConfig.first()
+    const allowedTimesForDate = getAllowedTimeSlotsForDate(scheduleConfig, dateOnly)
+    if (allowedTimesForDate !== null && !allowedTimesForDate.includes(data.time)) {
+      return response.badRequest({
+        message: 'Horário não está permitido pelo administrador',
+      })
+    }
+
     const availability = await MentorAvailability.query()
       .where('mentor_id', mentorId)
       .where('date', dateOnly)

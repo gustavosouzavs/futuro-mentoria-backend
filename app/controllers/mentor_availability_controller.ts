@@ -1,7 +1,9 @@
 import type { HttpContext } from '@adonisjs/core/http'
 import MentorAvailability from '#models/mentor_availability'
+import ScheduleConfig from '#models/schedule_config'
 import vine from '@vinejs/vine'
 import { DateTime } from 'luxon'
+import { getAllowedTimeSlotsForDate } from '#services/schedule_config_service'
 
 const createAvailabilitySchema = vine.compile(vine.object({
   date: vine.string(),
@@ -54,6 +56,23 @@ export default class MentorAvailabilityController {
     const dateStr = data.date.slice(0, 10)
     const date = DateTime.fromISO(dateStr)
 
+    const scheduleConfig = await ScheduleConfig.first()
+    const allowedTimesForDate = getAllowedTimeSlotsForDate(scheduleConfig, dateStr)
+    if (data.status === 'available' && allowedTimesForDate !== null) {
+      if (allowedTimesForDate.length === 0) {
+        return response.badRequest({
+          message: 'Dia desativado pelo administrador para mentorias',
+        })
+      }
+      const invalidTimes = data.times.filter((t) => !allowedTimesForDate.includes(t))
+      if (invalidTimes.length > 0) {
+        return response.badRequest({
+          message: 'Alguns horários não estão permitidos pelo administrador',
+          invalidTimes,
+        })
+      }
+    }
+
     const created: { id: string; date: string; time: string; status: string }[] = []
     for (const time of data.times) {
       const existing = await MentorAvailability.query()
@@ -97,6 +116,22 @@ export default class MentorAvailabilityController {
     }
 
     const data = await request.validateUsing(updateAvailabilitySchema)
+
+    if (data.status === 'available') {
+      const scheduleConfig = await ScheduleConfig.first()
+      const dateOnly = availability.date.toISODate()
+      if (!dateOnly) {
+        return response.badRequest({ message: 'Data inválida para validação de horário' })
+      }
+      const allowedTimesForDate = getAllowedTimeSlotsForDate(scheduleConfig, dateOnly)
+
+      if (allowedTimesForDate !== null && !allowedTimesForDate.includes(availability.time)) {
+        return response.badRequest({
+          message: 'Este horário não está permitido pelo administrador',
+        })
+      }
+    }
+
     availability.status = data.status as 'available' | 'booked' | 'unavailable'
     await availability.save()
 

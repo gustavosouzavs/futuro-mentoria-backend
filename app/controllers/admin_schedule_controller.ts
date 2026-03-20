@@ -20,6 +20,20 @@ const scheduleSchema = vine.compile(vine.object({
 
 export default class AdminScheduleController {
   /**
+   * GET /api/admin/schedule-config
+   */
+  async index({ response, auth }: HttpContext) {
+    await auth.use('web').authenticate()
+    const user = auth.user!
+    if (user.role !== 'admin') {
+      return response.forbidden({ message: 'Acesso negado' })
+    }
+
+    const existing = await ScheduleConfig.first()
+    return response.ok({ days: existing?.days ?? [] })
+  }
+
+  /**
    * POST /api/admin/schedule-config
    */
   async store({ request, response, auth }: HttpContext) {
