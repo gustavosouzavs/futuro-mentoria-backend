@@ -1,7 +1,6 @@
 import type { HttpContext } from '@adonisjs/core/http'
 import fs from 'node:fs/promises'
 import User from '#models/user'
-import hash from '@adonisjs/core/services/hash'
 import { parseStudentImportFile } from '#services/student_import_service'
 
 function slug(name: string): string {

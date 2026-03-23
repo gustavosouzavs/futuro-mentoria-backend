@@ -72,6 +72,7 @@ router
     router
       .group(() => {
         router.get('/metrics', '#controllers/admin_metrics_controller.index')
+        router.get('/appointments', '#controllers/admin_appointments_controller.index')
         router.get('/users', '#controllers/admin_users_controller.index')
         router.get('/users/:id', '#controllers/admin_users_controller.show')
         router.patch('/users/:id', '#controllers/admin_users_controller.update')

@@ -1,7 +1,6 @@
 import type { HttpContext } from '@adonisjs/core/http'
 import User from '#models/user'
 import db from '@adonisjs/lucid/services/db'
-import hash from '@adonisjs/core/services/hash'
 import vine from '@vinejs/vine'
 
 const updateUserSchema = vine.compile(vine.object({

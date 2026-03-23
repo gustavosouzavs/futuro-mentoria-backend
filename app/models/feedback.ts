@@ -24,7 +24,6 @@ export default class Feedback extends BaseModel {
 
   @column({
     prepare: (value: string[] | null) => (value ? JSON.stringify(value) : null),
-    consume: (value: string | null) => (value ? JSON.parse(value) : null),
   })
   declare topics: string[] | null
 

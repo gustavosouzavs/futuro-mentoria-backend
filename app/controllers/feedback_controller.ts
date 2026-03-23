@@ -5,7 +5,6 @@ import vine from '@vinejs/vine'
 
 const createFeedbackSchema = vine.compile(vine.object({
   appointmentId: vine.string(),
-  role: vine.enum(['student', 'mentor']),
   rating: vine.number().min(1).max(5).optional(),
   comment: vine.string().trim().optional(),
   satisfaction: vine.enum(['very_satisfied', 'satisfied', 'neutral', 'dissatisfied', 'very_dissatisfied']),
@@ -19,6 +18,9 @@ export default class FeedbackController {
   async store({ request, response, auth }: HttpContext) {
     await auth.use('web').authenticate()
     const user = auth.user!
+    if (user.role !== 'student' && user.role !== 'mentor') {
+      return response.forbidden({ message: 'Apenas mentor ou estudante pode enviar feedback' })
+    }
 
     const data = await request.validateUsing(createFeedbackSchema)
     const appointmentId = parseInt(data.appointmentId, 10)
@@ -31,16 +33,16 @@ export default class FeedbackController {
       return response.notFound({ message: 'Agendamento não encontrado' })
     }
 
-    if (data.role === 'student' && appointment.studentId !== user.id) {
+    if (user.role === 'student' && appointment.studentId !== user.id) {
       return response.forbidden({ message: 'Este agendamento não é seu' })
     }
-    if (data.role === 'mentor' && appointment.mentorId !== user.id) {
+    if (user.role === 'mentor' && appointment.mentorId !== user.id) {
       return response.forbidden({ message: 'Este agendamento não é seu' })
     }
 
     const existing = await Feedback.query()
       .where('appointment_id', appointmentId)
-      .where('user_type', data.role)
+      .where('user_type', user.role)
       .first()
     if (existing) {
       return response.badRequest({ message: 'Feedback já enviado para esta mentoria' })
@@ -48,7 +50,7 @@ export default class FeedbackController {
 
     await Feedback.create({
       appointmentId: appointment.id,
-      userType: data.role,
+      userType: user.role as 'student' | 'mentor',
       rating: data.rating ?? null,
       comment: data.comment ?? null,
       satisfaction: data.satisfaction,
