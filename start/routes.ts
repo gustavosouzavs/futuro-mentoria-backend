@@ -32,6 +32,10 @@ router
     router.post('/appointments', '#controllers/appointments_controller.store')
     router.get('/rooms/reservations', '#controllers/room_reservations_controller.index')
 
+    router
+      .get('/material-files/:id', '#controllers/material_files_controller.show')
+      .use(middleware.apiAuth())
+
     // Student (authenticated)
     router
       .group(() => {
@@ -40,6 +44,10 @@ router
         router.patch(
           '/appointments/:id/preparation-items',
           '#controllers/student_appointments_controller.updatePreparationItems'
+        )
+        router.post(
+          '/appointments/:id/materials/upload',
+          '#controllers/student_materials_controller.store'
         )
       })
       .prefix('student')
@@ -55,6 +63,7 @@ router
         router.get('/appointments/:id', '#controllers/mentor_appointments_controller.show')
         router.patch('/appointments/:id', '#controllers/mentor_appointments_controller.update')
         router.post('/appointments/:id/materials', '#controllers/mentor_materials_controller.store')
+        router.post('/appointments/:id/materials/upload', '#controllers/mentor_materials_controller.upload')
         router.get('/availability', '#controllers/mentor_availability_controller.index')
         router.post('/availability', '#controllers/mentor_availability_controller.store')
         router.patch('/availability/:id', '#controllers/mentor_availability_controller.update')

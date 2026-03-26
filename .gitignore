@@ -3,6 +3,10 @@ node_modules
 build
 tmp
 
+# Uploads de materiais (gerado em runtime)
+storage/appointment_materials/*
+!storage/appointment_materials/.gitkeep
+
 # Secrets
 .env
 .env.local

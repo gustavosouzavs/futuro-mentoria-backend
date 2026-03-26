@@ -76,8 +76,12 @@ export default class AppointmentsController {
     }
 
     const scheduledAt = DateTime.fromISO(`${dateOnly}T${data.time}:00`, { zone: 'utc' })
+    const rawStudentId = Number(data.studentId)
+    const studentId =
+      Number.isFinite(rawStudentId) && rawStudentId > 0 ? Math.floor(rawStudentId) : null
+
     const appointment = await Appointment.create({
-      studentId: data.studentId ?? null,
+      studentId,
       mentorId,
       subject: data.subject ?? "",
       scheduledAt,
@@ -86,7 +90,8 @@ export default class AppointmentsController {
       studentName: data.studentName,
       studentEmail: data.studentEmail,
       studentGrade: data.grade,
-      message: data.message ?? null,
+      studentMessage: data.message && data.message.trim() ? data.message.trim() : null,
+      message: null,
       preparationItems:
         data.preparationItems && data.preparationItems.length > 0 ? data.preparationItems : null,
     })

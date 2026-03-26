@@ -2,6 +2,7 @@ import type { HttpContext } from '@adonisjs/core/http'
 import Appointment from '#models/appointment'
 import User from '#models/user'
 import db from '@adonisjs/lucid/services/db'
+import { serializeAppointmentMaterial } from '#services/appointment_material_serializer'
 
 export default class MentorAppointmentsController {
   /**
@@ -79,13 +80,7 @@ export default class MentorAppointmentsController {
       .where('user_type', 'mentor')
       .first()
 
-    const materials = (appointment.materials || []).map((m) => ({
-      id: String(m.id),
-      name: m.name,
-      url: m.url,
-      type: m.type,
-      uploadedAt: m.uploadedAt.toISO(),
-    }))
+    const materials = (appointment.materials || []).map((m) => serializeAppointmentMaterial(m))
 
     return response.ok({
       id: String(appointment.id),
@@ -96,6 +91,7 @@ export default class MentorAppointmentsController {
       date: appointment.scheduledAt.toISO(),
       time: appointment.timeSlot,
       status: appointment.status,
+      studentMessage: appointment.studentMessage ?? undefined,
       message: appointment.message ?? undefined,
       preparationItems: appointment.preparationItems ?? undefined,
       materials,

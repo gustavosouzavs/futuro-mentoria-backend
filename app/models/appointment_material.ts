@@ -19,6 +19,13 @@ export default class AppointmentMaterial extends BaseModel {
   @column()
   declare type: 'pdf' | 'doc' | 'link' | 'other'
 
+  /** Caminho relativo dentro de storage/ quando o arquivo está no servidor; null = apenas URL externa. */
+  @column()
+  declare diskPath: string | null
+
+  @column()
+  declare source: 'mentor' | 'student'
+
   @column.dateTime()
   declare uploadedAt: DateTime
 

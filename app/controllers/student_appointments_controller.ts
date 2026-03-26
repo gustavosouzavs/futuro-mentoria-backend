@@ -1,6 +1,7 @@
 import type { HttpContext } from '@adonisjs/core/http'
 import Appointment from '#models/appointment'
 import db from '@adonisjs/lucid/services/db'
+import { serializeAppointmentMaterial } from '#services/appointment_material_serializer'
 import vine from '@vinejs/vine'
 
 const updatePreparationItemsSchema = vine.compile(
@@ -77,22 +78,18 @@ export default class StudentAppointmentsController {
     const feedbacks = await appointment.related('feedbacks').query().where('user_type', 'student')
     const hasFeedback = feedbacks.length > 0
 
-    const materials = (appointment.materials || []).map((m) => ({
-      id: String(m.id),
-      name: m.name,
-      url: m.url,
-      type: m.type,
-      uploadedAt: m.uploadedAt.toISO(),
-    }))
+    const materials = (appointment.materials || []).map((m) => serializeAppointmentMaterial(m))
 
     return response.ok({
       id: String(appointment.id),
       mentorName: appointment.mentor?.fullName || 'Mentor',
       mentorEmail: appointment.mentor?.email || '',
+      mentorPhone: appointment.mentor?.phone ?? undefined,
       subject: appointment.subject,
       date: appointment.scheduledAt.toISO(),
       time: appointment.timeSlot,
       status: appointment.status,
+      studentMessage: appointment.studentMessage ?? undefined,
       message: appointment.message ?? undefined,
       preparationItems: appointment.preparationItems ?? undefined,
       materials,

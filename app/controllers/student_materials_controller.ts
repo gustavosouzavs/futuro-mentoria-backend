@@ -1,62 +1,27 @@
 import type { HttpContext } from '@adonisjs/core/http'
 import Appointment from '#models/appointment'
 import AppointmentMaterial from '#models/appointment_material'
-import vine from '@vinejs/vine'
 import { DateTime } from 'luxon'
 import { serializeAppointmentMaterial } from '#services/appointment_material_serializer'
 import { storeMaterialMultipart } from '#services/appointment_material_file_service'
 
-const createMaterialSchema = vine.compile(vine.object({
-  name: vine.string().trim().minLength(1),
-  url: vine.string().trim(),
-  type: vine.enum(['pdf', 'doc', 'link', 'other']),
-}))
-
-export default class MentorMaterialsController {
+export default class StudentMaterialsController {
   /**
-   * POST /api/mentor/appointments/:id/materials
+   * POST /api/student/appointments/:id/materials/upload
+   * multipart field: file
    */
   async store({ params, request, response, auth }: HttpContext) {
     await auth.use('web').authenticate()
     const user = auth.user!
-    if (user.role !== 'mentor') {
+    if (user.role !== 'student') {
       return response.forbidden({ message: 'Acesso negado' })
     }
 
     const appointmentId = parseInt(params.id, 10)
-    const appointment = await Appointment.query().where('id', appointmentId).where('mentor_id', user.id).first()
-
-    if (!appointment) {
-      return response.notFound({ message: 'Agendamento não encontrado' })
-    }
-
-    const data = await request.validateUsing(createMaterialSchema)
-    const material = await AppointmentMaterial.create({
-      appointmentId: appointment.id,
-      name: data.name,
-      url: data.url,
-      type: data.type,
-      diskPath: null,
-      source: 'mentor',
-      uploadedAt: DateTime.now(),
-    })
-
-    return response.created(serializeAppointmentMaterial(material))
-  }
-
-  /**
-   * POST /api/mentor/appointments/:id/materials/upload
-   * multipart field: file
-   */
-  async upload({ params, request, response, auth }: HttpContext) {
-    await auth.use('web').authenticate()
-    const user = auth.user!
-    if (user.role !== 'mentor') {
-      return response.forbidden({ message: 'Acesso negado' })
-    }
-
-    const appointmentId = parseInt(params.id, 10)
-    const appointment = await Appointment.query().where('id', appointmentId).where('mentor_id', user.id).first()
+    const appointment = await Appointment.query()
+      .where('id', appointmentId)
+      .where('student_id', user.id)
+      .first()
 
     if (!appointment) {
       return response.notFound({ message: 'Agendamento não encontrado' })
@@ -82,7 +47,7 @@ export default class MentorMaterialsController {
       url: '/api/material-files/pending',
       type: diskMeta.materialType,
       diskPath: diskMeta.diskPath,
-      source: 'mentor',
+      source: 'student',
       uploadedAt: DateTime.now(),
     })
     material.url = `/api/material-files/${material.id}`

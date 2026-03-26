@@ -30,6 +30,10 @@ export default class Appointment extends BaseModel {
   @column()
   declare message: string | null
 
+  /** Texto enviado pelo estudante no agendamento (somente leitura para o mentor). */
+  @column()
+  declare studentMessage: string | null
+
   @column({
     prepare: (value: string[] | null) => (value ? JSON.stringify(value) : null),
     consume: (value: string | null) => {

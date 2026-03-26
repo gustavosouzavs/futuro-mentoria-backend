@@ -1,6 +1,7 @@
 import type { HttpContext } from '@adonisjs/core/http'
 import Appointment from '#models/appointment'
 import User from '#models/user'
+import { serializeAppointmentMaterial } from '#services/appointment_material_serializer'
 
 export default class AdminAppointmentsController {
   /**
@@ -35,6 +36,7 @@ export default class AdminAppointmentsController {
         time: a.timeSlot,
         createdAt: a.createdAt.toISO(),
         updatedAt: a.updatedAt?.toISO() ?? null,
+        studentMessage: a.studentMessage ?? null,
         message: a.message ?? null,
         preparationItems: a.preparationItems ?? [],
         mentor: {
@@ -50,13 +52,7 @@ export default class AdminAppointmentsController {
           phone: student?.phone || null,
           grade: a.studentGrade || student?.grade || null,
         },
-        materials: (a.materials ?? []).map((m) => ({
-          id: String(m.id),
-          name: m.name,
-          url: m.url,
-          type: m.type,
-          uploadedAt: m.uploadedAt.toISO(),
-        })),
+        materials: (a.materials ?? []).map((m) => serializeAppointmentMaterial(m)),
         feedbacks: {
           student: studentFeedback
             ? {
