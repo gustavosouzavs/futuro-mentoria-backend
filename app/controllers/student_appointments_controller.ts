@@ -118,9 +118,11 @@ export default class StudentAppointmentsController {
     }
 
     const data = await request.validateUsing(updatePreparationItemsSchema)
+    console.log(data)
     appointment.preparationItems =
       data.preparationItems && data.preparationItems.length > 0 ? data.preparationItems : null
     await appointment.save()
+
 
     return response.ok({ message: 'Materiais atualizados com sucesso' })
   }
