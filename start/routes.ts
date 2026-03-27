@@ -82,6 +82,11 @@ router
       .group(() => {
         router.get('/metrics', '#controllers/admin_metrics_controller.index')
         router.get('/appointments', '#controllers/admin_appointments_controller.index')
+        router.get('/branding', '#controllers/admin_branding_controller.show')
+        router.post('/branding/logo', '#controllers/admin_branding_controller.uploadLogo')
+        router.get('/branding/logo', '#controllers/admin_branding_controller.logo')
+        router.get('/reports/mentorias.pdf', '#controllers/admin_reports_controller.mentoriasPdf')
+        router.get('/reports/mentorias.xlsx', '#controllers/admin_reports_controller.mentoriasXlsx')
         router.get('/users', '#controllers/admin_users_controller.index')
         router.get('/users/:id', '#controllers/admin_users_controller.show')
         router.patch('/users/:id', '#controllers/admin_users_controller.update')

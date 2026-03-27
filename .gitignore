@@ -7,6 +7,10 @@ tmp
 storage/appointment_materials/*
 !storage/appointment_materials/.gitkeep
 
+# Branding/logo (gerado em runtime)
+storage/branding/*
+!storage/branding/.gitkeep
+
 # Secrets
 .env
 .env.local
